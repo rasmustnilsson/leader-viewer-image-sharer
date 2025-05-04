@@ -6,28 +6,10 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certs:/etc/letsencrypt   # where certbot will write certs
-      - ./certbot-webroot:/var/www/certbot  # ACME HTTP challenge webroot
+      - /etc/letsencrypt/live:/etc/letsencrypt/live:ro
     depends_on:
       - nextjs
       - websocket
-    networks:
-      - app-network
-
-  certbot:
-    image: certbot/certbot:v2.7.0
-    volumes:
-      - ./certs:/etc/letsencrypt
-      - ./certbot-webroot:/var/www/certbot
-    entrypoint: >
-      sh -c "certbot certonly
-             --non-interactive
-             --agree-tos
-             --email you@rasmusnilsson.com
-             --webroot
-             --webroot-path=/var/www/certbot
-             -d rasmusnilsson.com
-             -d www.rasmusnilsson.com"
     networks:
       - app-network
 
