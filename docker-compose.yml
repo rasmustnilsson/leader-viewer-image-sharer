@@ -3,13 +3,31 @@ services:
     image: nginx:1.27-alpine-slim
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - certdata:/etc/letsencrypt
+      - webroot:/var/www/certbot
     depends_on:
       - nextjs
       - websocket
     networks:
       - app-network
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certdata:/etc/letsencrypt
+      - webroot:/var/www/certbot
+    entrypoint: >
+      /bin/sh -c "
+        trap exit TERM;
+        while :; do
+          certbot renew --webroot -w /var/www/certbot \
+            --deploy-hook 'nginx -s reload';
+          sleep 12h & wait \$${!};
+        done
+      "
 
   nextjs:
     build:
@@ -33,3 +51,7 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  certdata:
+  webroot:
