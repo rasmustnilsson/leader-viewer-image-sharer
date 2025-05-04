@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { useState } from 'react';
 import { useWebSocket } from '../providers/websocket-provider';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/app/components/ui/button';
 import { SortableImage } from './SortableImage';
 
 export function ImageGallery() {

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"next dev --turbopack\" \"bun run debug:ws\"",
-    "debug:ws": "bun --inspect=6499 run --watch src/app/api/websocket/start-server.ts",
+    "debug:ws": "bun --inspect=6499 run --watch src/ws/start-server.ts",
     "build": "next build",
     "start": "next start",
     "lint": "biome check .",

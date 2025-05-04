@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { ClientToServerMessage, ServerToClientMessage, Image } from '../api/websocket/types';
+import type { ServerToClientMessage, Image, ClientToServerMessage } from '@/ws/types';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 interface WebSocketContextType {
   message: string;
@@ -130,6 +130,7 @@ const useWebSocketConnection = () => {
     return websocket;
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const websocket = connectWebSocket();
 
