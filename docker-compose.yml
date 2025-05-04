@@ -6,8 +6,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - certdata:/etc/letsencrypt
-      - webroot:/var/www/certbot
+      - ./certs:/etc/letsencrypt   # where certbot will write certs
+      - ./certbot-webroot:/var/www/certbot  # ACME HTTP challenge webroot
     depends_on:
       - nextjs
       - websocket
@@ -15,19 +15,21 @@ services:
       - app-network
 
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:v2.7.0
     volumes:
-      - certdata:/etc/letsencrypt
-      - webroot:/var/www/certbot
+      - ./certs:/etc/letsencrypt
+      - ./certbot-webroot:/var/www/certbot
     entrypoint: >
-      /bin/sh -c "
-        trap exit TERM;
-        while :; do
-          certbot renew --webroot -w /var/www/certbot \
-            --deploy-hook 'nginx -s reload';
-          sleep 12h & wait \$${!};
-        done
-      "
+      sh -c "certbot certonly
+             --non-interactive
+             --agree-tos
+             --email you@rasmusnilsson.com
+             --webroot
+             --webroot-path=/var/www/certbot
+             -d rasmusnilsson.com
+             -d www.rasmusnilsson.com"
+    networks:
+      - app-network
 
   nextjs:
     build:
@@ -51,7 +53,3 @@ services:
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  certdata:
-  webroot:
