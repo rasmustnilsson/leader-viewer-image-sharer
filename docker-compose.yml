@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.Nextjs
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_WEBSOCKET_URL=ws://websocket:3001
+    depends_on:
+      - websocket
+    networks:
+      - app-network
+
+  websocket:
+    build:
+      context: .
+      dockerfile: Dockerfile.Websocket
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
