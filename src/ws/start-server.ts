@@ -1,5 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import {
+import type {
   ClientToServerMessage,
   ServerToClientMessage,
   ServerInitialState,
@@ -33,11 +33,11 @@ function removeImageAfterDuration(id: string) {
 
 // Broadcast a message to all connected clients
 function broadcastMessage(message: ServerToClientMessage) {
-  clients.forEach((client) => {
+  for (const client of clients) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(message));
     }
-  });
+  }
 }
 
 // Handle message updates

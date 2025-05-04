@@ -15,10 +15,13 @@ interface WebSocketContextType {
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
-export function WebSocketProvider({ children }: { children: ReactNode }) {
+export function WebSocketProvider({
+  children,
+  websocketUrl,
+}: { children: ReactNode; websocketUrl: string }) {
   const [message, setMessage] = useState<string>('');
   const [images, setImages] = useState<Image[]>([]);
-  const ws = useWebSocketConnection();
+  const ws = useWebSocketConnection(websocketUrl);
 
   useEffect(() => {
     if (!ws) return;
@@ -93,14 +96,14 @@ export function useWebSocket() {
   return context;
 }
 
-const useWebSocketConnection = () => {
+const useWebSocketConnection = (websocketUrl: string) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const maxReconnectAttempts = 20;
   const reconnectDelay = 3000; // 3 seconds
 
   const connectWebSocket = () => {
-    const websocket = new WebSocket('ws://localhost:3001');
+    const websocket = new WebSocket(websocketUrl);
 
     websocket.onopen = () => {
       console.log('Connected to WebSocket server');

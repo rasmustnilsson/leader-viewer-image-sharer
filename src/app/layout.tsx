@@ -25,10 +25,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const websocketUrl = process.env.WEBSOCKET_URL || 'ws://localhost:3001';
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}>
-        <WebSocketProvider>
+        <WebSocketProvider websocketUrl={websocketUrl}>
           <CoverImage>{children}</CoverImage>
         </WebSocketProvider>
       </body>
