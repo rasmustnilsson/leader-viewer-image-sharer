@@ -53,7 +53,11 @@ export function SortableImage({
   return (
     <div ref={setNodeRef} style={style} {...attributes} className="relative group">
       <div {...listeners} className="aspect-square relative rounded-lg overflow-hidden">
-        <img src={image} className="absolute inset-0 w-full h-full object-cover rounded" />
+        <img
+          src={image}
+          className="absolute inset-0 w-full h-full object-cover rounded"
+          alt="Uploaded item."
+        />
       </div>
       <Delete
         className="absolute top-2 right-2 h-6 w-6 cursor-pointer opacity-50 group-hover:opacity-100 transition-opacity bg-black/50 p-1 rounded"

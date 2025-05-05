@@ -1,6 +1,16 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+body,
+html {
+  position: fixed;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @tailwind base;
