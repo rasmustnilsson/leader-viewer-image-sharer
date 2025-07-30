@@ -1,20 +1,42 @@
 'use client';
 
-import CoverImage from '../components/CoverImage';
-import { useWebSocket } from '../providers/websocket-provider';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function ViewersPage() {
-  const { message } = useWebSocket();
+  const [sessionId, setSessionId] = useState('');
+  const router = useRouter();
+
+  const handleJoinSession = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (sessionId.trim()) {
+      router.push(`/viewers/${sessionId.trim()}`);
+    }
+  };
 
   return (
-    <CoverImage>
-      <div className="space-y-4">
-        {message && (
-          <div className="p-4 bg-white/10 backdrop-blur-sm rounded-lg text-white text-xl">
-            {message}
-          </div>
-        )}
+    <div className="w-full max-w-md mx-auto space-y-6 bg-white/10 backdrop-blur-sm rounded-lg m-16 p-6">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-white mb-2">Join Viewer Session</h1>
+        <p className="text-gray-300">Enter a session ID to join</p>
       </div>
-    </CoverImage>
+
+      <form onSubmit={handleJoinSession} className="space-y-4">
+        <input
+          type="text"
+          value={sessionId}
+          onChange={(e) => setSessionId(e.target.value)}
+          placeholder="Enter session ID"
+          className="w-full p-3 border rounded-lg bg-white/20 text-white placeholder-gray-300"
+          required
+        />
+        <button
+          type="submit"
+          className="w-full p-3 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
+        >
+          Join Session
+        </button>
+      </form>
+    </div>
   );
 }

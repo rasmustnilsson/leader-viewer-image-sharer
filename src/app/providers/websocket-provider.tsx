@@ -1,7 +1,7 @@
 'use client';
 
 import type { ServerToClientMessage, Image, ClientToServerMessage } from '@/ws/types';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 interface WebSocketContextType {
   message: string;
@@ -18,38 +18,36 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 export function WebSocketProvider({
   children,
   websocketUrl,
-}: { children: ReactNode; websocketUrl: string }) {
+  sessionId,
+}: { children: ReactNode; websocketUrl: string; sessionId: string }) {
   const [message, setMessage] = useState<string>('');
   const [images, setImages] = useState<Image[]>([]);
-  const ws = useWebSocketConnection(websocketUrl);
 
-  useEffect(() => {
-    if (!ws) return;
+  const onMessage = useCallback((message: ServerToClientMessage) => {
+    if (message.type === 'serverInitialState') {
+      setMessage(message.message);
+      setImages(message.images);
+    } else if (message.type === 'serverMessageUpdate') {
+      setMessage(message.message);
+    } else if (message.type === 'serverImageUpdate') {
+      setImages(message.images);
+    }
+  }, []);
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data) as ServerToClientMessage;
-      if (data.type === 'serverInitialState') {
-        setMessage(data.message);
-        setImages(data.images);
-      } else if (data.type === 'serverMessageUpdate') {
-        setMessage(data.message);
-      } else if (data.type === 'serverImageUpdate') {
-        setImages(data.images);
-      }
-    };
-  }, [ws]);
+  const ws = useWebSocketConnection(`${websocketUrl}?sessionId=${sessionId}`, onMessage);
 
   const sendMessage = (newMessage: string) =>
-    sendWebSocketMessage({ type: 'clientMessageSet', message: newMessage });
+    sendWebSocketMessage({ type: 'clientMessageSet', sessionId, message: newMessage });
 
   const sendImage = async (file: File) => {
     const buffer = await file.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
     const imageData = `data:${file.type};base64,${base64}`;
-    sendWebSocketMessage({ type: 'clientImageAdd', blob: imageData });
+    sendWebSocketMessage({ type: 'clientImageAdd', sessionId, blob: imageData });
   };
 
-  const removeImage = (id: string) => sendWebSocketMessage({ type: 'clientImageRemove', id });
+  const removeImage = (id: string) =>
+    sendWebSocketMessage({ type: 'clientImageRemove', sessionId, id });
 
   const reorderImage = (fromIndex: number, toIndex: number) => {
     // Optimistically update local state
@@ -61,7 +59,7 @@ export function WebSocketProvider({
     });
 
     // Send WebSocket message
-    sendWebSocketMessage({ type: 'clientImageReorder', fromIndex, toIndex });
+    sendWebSocketMessage({ type: 'clientImageReorder', sessionId, fromIndex, toIndex });
   };
 
   const setDuration = (id: string, duration: number | null) => {
@@ -71,7 +69,7 @@ export function WebSocketProvider({
     );
 
     // Send WebSocket message
-    sendWebSocketMessage({ type: 'clientImageSetDuration', id, duration });
+    sendWebSocketMessage({ type: 'clientImageSetDuration', sessionId, id, duration });
   };
 
   const sendWebSocketMessage = (message: ClientToServerMessage) => {
@@ -96,7 +94,10 @@ export function useWebSocket() {
   return context;
 }
 
-const useWebSocketConnection = (websocketUrl: string) => {
+const useWebSocketConnection = (
+  websocketUrl: string,
+  onMessage: (message: ServerToClientMessage) => void
+) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const maxReconnectAttempts = 20;
@@ -127,6 +128,11 @@ const useWebSocketConnection = (websocketUrl: string) => {
       } else {
         console.log('Max reconnection attempts reached');
       }
+    };
+
+    websocket.onmessage = (event) => {
+      const data = JSON.parse(event.data) as ServerToClientMessage;
+      onMessage(data);
     };
 
     setWs(websocket);
